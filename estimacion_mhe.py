@@ -30,19 +30,20 @@ N = data.shape[0]
 print(data.shape)
 
 # Encabezado del txt:
-# Time, alpha, beta, V_inf (= V_t), u(v_body_X), v(v_body_Y), w(v_body_Z), p, q, r, gx, gy, gz, FX_body, FY_body, FZ_body
+# Time, alpha, beta, delta2, V_inf (= V_t), u(v_body_X), v(v_body_Y), w(v_body_Z), p, q, r, gx, gy, gz, FX_body, FY_body, FZ_body
 
 alpha = data[:, 1]
 beta = data[:, 2]
-vt = data[:, 3]
-u = data[:, 4]  # vel_body_X
-v = data[:, 5]  # vel_body_Y
-w = data[:, 6]  # vel_body_Z
-p = data[:, 7]
-q = data[:, 8]
-r = data[:, 9]
-grav = data[:, 10:13]  # gx, gy, gz
-F_body = data[:, 13:16]  # FX_body, FY_body, FZ_body
+delta2 = data[:, 3]  # alpha2
+vt = data[:, 4]
+u = data[:, 5]  # vel_body_X
+v = data[:, 6]  # vel_body_Y
+w = data[:, 7]  # vel_body_Z
+p = data[:, 8]
+q = data[:, 9]
+r = data[:, 10]
+grav = data[:, 11:14]  # gx, gy, gz
+F_body = data[:, 14:17]  # FX_body, FY_body, FZ_body
 
 # F_body = F_body - grav  # FIXME
 
@@ -226,12 +227,12 @@ coefs_reales = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_C_B03.txt', 'Force_coe
 
 
 # Encabezado del txt:
-# Time,   Mach,     alfa,     beta,     Cd,     CL_alfa,     Cn_p_alfa,     Cn_q_alfa
+# Time,   Mach,     alfa,     beta,     delta2,     Cd,     CL_alfa,     Cn_p_alfa,     Cn_q_alfa
 
 t = coefs_reales[:, 0]
 mach = coefs_reales[:, 1]
-Cd_real = coefs_reales[:, 4]
-Cl_real = coefs_reales[:, 5]
+Cd_real = coefs_reales[:, 5]
+Cl_real = coefs_reales[:, 6]
 
 #
 # Cd
