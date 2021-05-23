@@ -14,14 +14,14 @@ diam = 0.04
 rho = 1.225
 S = np.pi * (0.5 * diam) ** 2
 
-CASO = 2
+CASO = 0
 
 # carga dato una sola corrida
 #
-#data = np.loadtxt('Resu_RBD/' + ['Forces_proc_C_B06.txt'][CASO], delimiter=',', skiprows=1)
+data = np.loadtxt('Resu_RBD/' + ['Forces_proc_C01.txt'][CASO], delimiter=',', skiprows=1)
 #
 # carga datos, solo drag
-data = np.loadtxt('Resu_RBD/' + ['Forces_proc_C_B03.txt', 'Forces_proc_C_B04.txt', 'Forces_proc_C_B05.txt'][CASO], delimiter=',', skiprows=1) #mail_nicolas/ hace alusion a la carpeta | skiprows=1 saltea la primer fila xq es el encabezado
+#data = np.loadtxt('Resu_RBD/' + ['Forces_proc_B03.txt', 'Forces_proc_B04.txt', 'Forces_proc_B06.txt'][CASO], delimiter=',', skiprows=1) #mail_nicolas/ hace alusion a la carpeta | skiprows=1 saltea la primer fila xq es el encabezado
 #
 # carga datos, drag + lift
 #data = np.loadtxt('Resu_RBD/' + ['Forces_proc_C_C01.txt', 'Forces_proc_C_C02.txt', 'Forces_proc_C_C03.txt'][CASO], delimiter=',', skiprows=1) #mail_nicolas/ hace alusion a la carpeta | skiprows=1 saltea la primer fila xq es el encabezado
@@ -217,10 +217,10 @@ Cl_estim = xhat[:, 1]
 
 #
 # carga datos 1 sola corrida
-#coefs_reales = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_C_B06.txt'][CASO], delimiter=',', skiprows=1)
+coefs_reales = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_C01.txt'][CASO], delimiter=',', skiprows=1)
 #
 # carga datos drag 
-coefs_reales = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_C_B03.txt', 'Force_coef_proc_C_B04.txt', 'Force_coef_proc_C_B05.txt'][CASO], delimiter=',', skiprows=1)
+#coefs_reales = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_B03.txt', 'Force_coef_proc_B04.txt', 'Force_coef_proc_B06.txt'][CASO], delimiter=',', skiprows=1)
 #
 # carga datos drag + lift
 #coefs_reales = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_C_C01.txt', 'Force_coef_proc_C_C02.txt', 'Force_coef_proc_C_C03.txt'][CASO], delimiter=',', skiprows=1)
@@ -252,7 +252,7 @@ ax[1].set_xlim([0, max(t)])
 ax[1].set_title('Cd vs tiempo')
 
 plt.tight_layout()
-plt.savefig('CD - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
+plt.savefig('Figures/CD - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
 
 ## Grafico errores
 f, ax = plt.subplots(2)
@@ -265,7 +265,7 @@ ax[1].set_xlim([0, max(t)])
 ax[1].set_title('Error en Cd vs tiempo')
 
 plt.tight_layout()
-plt.savefig('CD_error - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
+plt.savefig('Figures/CD_error - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
 
 #
 # Cl
@@ -285,7 +285,7 @@ ax[1].set_xlim([0, max(t)])
 ax[1].set_title('Cl vs tiempo')
 
 plt.tight_layout()
-plt.savefig('Cl - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
+plt.savefig('Figures/Cl - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
 
 ## Grafico errores 
 f, ax = plt.subplots(2)
@@ -298,7 +298,7 @@ ax[1].set_xlim([0, max(t)])
 ax[1].set_title('Error en Cl vs tiempo')
 
 plt.tight_layout()
-plt.savefig('Cl_error - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
+plt.savefig('Figures/Cl_error - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
 
 plt.show()
 
