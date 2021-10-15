@@ -227,27 +227,11 @@ mach = coefs_reales[:, 1]
 Cd_real = coefs_reales[:, 5]
 Cl_real = coefs_reales[:, 6]
 
-coefs_reales0 = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_B05.txt'][CASO], delimiter=',', skiprows=1)
-t0 = coefs_reales0[:, 0]
-mach0 = coefs_reales0[:, 1]
-Cd0_estim = coefs_reales0[:, 5]
 
 #
 # Cd
 #
-# Grafico el coeficiente Real
-f, ax = plt.subplots(2)
-ax[0].plot(mach0, Cd0_estim,'o', label='Cd Case B05')
-ax[0].legend()
-ax[0].set_xlim([min(mach0), max(mach0)])
-ax[0].set_title('Cd0 vs Mach')
 
-ax[1].plot(t0, Cd0_estim, label='Cd Case B05')
-ax[1].legend()
-ax[1].set_xlim([0, max(t0)])
-ax[1].set_title('Cd0 vs tiempo')
-
-plt.tight_layout()
 # estimacion
 # Grafico el coeficiente
 f, ax = plt.subplots(2)
@@ -265,7 +249,7 @@ ax[1].set_title('Cd vs tiempo')
 
 plt.tight_layout()
 plt.savefig('Figures/CD - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
-'''
+
 ## Grafico errores
 f, ax = plt.subplots(2)
 ax[0].plot(mach, Cd_real - Cd_estim)
@@ -278,7 +262,7 @@ ax[1].set_title('Error en Cd vs tiempo')
 
 plt.tight_layout()
 plt.savefig('Figures/CD_error - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
-
+'''
 #
 # Cl
 #
@@ -314,28 +298,5 @@ plt.savefig('Figures/Cl_error - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.p
 
 plt.show()
 '''
-mach_ref = np.linspace(0,2.5,600)
-
-Cd0 = np.interp(mach_ref,mach0,Cd0_estim)
-CD = np.interp(mach_ref,mach,Cd_estim)
-
-eps = 1e-6
-
-Cdd2 = (CD-Cd0)/(delta2+eps)
- 
-
-plot_cd0ycdd2 = True;
-
-if plot_cd0ycdd2:
-    f, ax = plt.subplots(2)
-    ax[0].plot(mach0, Cd0_estim,'o', label='Cd0 ')
-    ax[0].legend()
-    ax[0].set_xlim([min(mach0), max(mach0)])
-    ax[0].set_title('FINAL Cd0 vs Mach')
-    
-    ax[1].plot(mach, Cdd2,'o', label='Cdd2 ')
-    ax[1].legend()
-    ax[1].set_xlim([min(mach), max(mach)])
-    ax[1].set_title('FINAL Cdd2 vs Mach')
 
 plt.show()
