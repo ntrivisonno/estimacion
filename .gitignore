@@ -6,3 +6,6 @@ octave-workspace
 # omitir carpetas
 Resu_RBD/*
 Figures/*
+octave/Figures/*
+octave/csv/*
+octave/cvs_5_to_80/*
