@@ -18,7 +18,7 @@ CASO = 0
 
 # carga dato una sola corrida
 #
-data = np.loadtxt('Resu_RBD/' + ['Forces_proc_B06.txt'][CASO], delimiter=',', skiprows=1)
+data = np.loadtxt('Resu_RBD/' + ['Forces_proc_C01a0_25.txt'][CASO], delimiter=',', skiprows=1)
 #
 # carga datos, solo drag
 #data = np.loadtxt('Resu_RBD/' + ['Forces_proc_B03.txt', 'Forces_proc_B04.txt', 'Forces_proc_B06.txt'][CASO], delimiter=',', skiprows=1) #mail_nicolas/ hace alusion a la carpeta | skiprows=1 saltea la primer fila xq es el encabezado
@@ -47,15 +47,15 @@ F_body = data[:, 14:17]  # FX_body, FY_body, FZ_body
 
 # F_body = F_body - grav  # FIXME
 
-Ncoef = 2 # cant de coef a estimar
+Ncoef = 3 # cant de coef a estimar
 Ny = 3
 Nw = Ncoef
-Nv = Ny
-Np = 3
+Nv = Ny # cant ruido medicion, simil cant mediciones
+Np = 4 # cant de parametros al solver
 Nt = 10  # horizonte
 Nu = 0
 
-Q = np.diag([1000.] * Ncoef)  # matrix de covarianza de ruido de proceso
+Q = np.diag([100.] * Ncoef)  # matrix de covarianza de ruido de proceso
 R = np.diag([.1, .1, .1])     # matrix de covarianza de ruido de  medición
 P = np.diag([10.] * Ncoef)    # matrix de covarianza de estimación inicial
 
@@ -68,20 +68,22 @@ def ode(x, u, w):
 
 def meas(x, p):
     '''
-    x[0]: Cd
+    x[0]: Cd0
     x[1]: Cl_alpha
+    x[2]: Cd2
     p[0]: vt
     p[1]: alpha
     p[2]: beta
+    p[3]: delta2
     y[0]: Fx
     y[1]: Fy
     y[2]: Fz
     '''
     qdy = 0.5 * rho * p[0] ** 2
     y = casadi.SX.zeros(Ny)
-    y[0] = -qdy * S * np.cos(p[1]) * np.cos(p[2]) * x[0]# + qdy * S * x[1] * (1-(np.cos(p[1])**2 * np.cos(p[2])**2))
-    y[1] = -qdy * S * np.sin(p[2]) * x[0]# - qdy * S * x[1] * np.cos(p[1]) * np.cos(p[2]) * np.sin(p[2])
-    y[2] = -qdy * S * np.sin(p[1]) * np.cos(p[2]) * x[0]# + qdy * S * x[1] * np.cos(p[1]) * np.sin(p[1]) * np.cos(p[2])**2
+    y[0] = -qdy * S * np.cos(p[1]) * np.cos(p[2]) * (x[0]+x[2]*p[3]) + qdy * S * x[1] * (1-(np.cos(p[1])**2 * np.cos(p[2])**2))
+    y[1] = -qdy * S * np.sin(p[2]) * (x[0]+x[2]*p[3]) - qdy * S * x[1] * np.cos(p[1]) * np.cos(p[2]) * np.sin(p[2])
+    y[2] = -qdy * S * np.sin(p[1]) * np.cos(p[2]) * (x[0]+x[2]*p[3]) + qdy * S * x[1] * np.cos(p[1]) * np.sin(p[1]) * np.cos(p[2])**2
     assert Ny == 3
     return y
 
@@ -106,6 +108,7 @@ lx = mpctools.getCasadiFunc(lxfunc, [Ncoef, Ncoef, (Ncoef, Ncoef)], ["x", "x0bar
 xhat = np.zeros((N, Ncoef))
 yhat = np.zeros((N, Nv))
 x0bar = np.zeros(Ncoef)
+#x0bar = np.array([200,10]) # valor inicio al para el solver
 guess = {}
 
 
@@ -172,10 +175,11 @@ for k in range(N):
     tmin = max(0, k - Nt)
     tmax = k+1  # para que en los slice cuando ponga :tmax tome hasta k *inclusive*
 
-    p_coefs = np.vstack((vt[tmin:tmax], alpha[tmin:tmax], beta[tmin:tmax])).T
+    p_coefs = np.vstack((vt[tmin:tmax], alpha[tmin:tmax], beta[tmin:tmax], delta2[tmin:tmax])).T
     assert p_coefs.shape == (N["t"] + 1, Np)
 
-    # Armo y llamo al solver. Si todavía no llené el horizonte, armo uno nuevo. Sino reúso el viejo.
+
+    # Armo y llamo al solver. Si todavía no llené el horizonte, armo uno nuevo. Sino reúso el viejo., arma un problema de MHE de 1 a 10
     if k <= Nt:
         solver = mpctools.nmhe(f=F, h=H, u=np.zeros((tmax-tmin-1, Nu)), p=p_coefs,
                                y=F_body[tmin:tmax, :], l=l, N=N, lx=lx,
@@ -184,9 +188,16 @@ for k in range(N):
     else:
         solver.par["Pinv"] = linalg.inv(P)
         solver.par["x0bar"] = x0bar
+        
         solver.par["y"] = list(F_body[tmin:tmax, :])
         solver.par["p"] = list(p_coefs)
     sol = mpctools.callSolver(solver)
+
+    print("x0bar",x0bar)
+    print("x0est",sol["x"][0])
+    #input("Presione enter") # esto es para que pause y cont con (enter)
+
+
     print(("%3d: %s" % (k, sol["status"])))
     if sol["status"] != "Solve_Succeeded":
         break
@@ -212,12 +223,15 @@ for k in range(N):
     for key in guess.keys():
         guess[key] = np.concatenate((guess[key], guess[key][-1:]))
 
-Cd_estim = xhat[:, 0]
+Cd0_estim = xhat[:, 0]
 Cl_estim = xhat[:, 1]
+Cd2_estim = xhat[:, 2]
+
+Cd_estim = Cd0_estim + Cd2_estim * delta2
 
 #
 # carga datos 1 sola corrida
-coefs_reales = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_B06.txt'][CASO], delimiter=',', skiprows=1)
+coefs_reales = np.loadtxt('Resu_RBD/' + ['Force_coef_proc_C01a0_25.txt'][CASO], delimiter=',', skiprows=1)
 
 # Encabezado del txt:
 # Time,   Mach,     alfa,     beta,     delta2,     Cd,     CL_alfa,     Cn_p_alfa,     Cn_q_alfa
@@ -234,18 +248,38 @@ Cl_real = coefs_reales[:, 6]
 
 # estimacion
 # Grafico el coeficiente
-f, ax = plt.subplots(2)
+f, ax = plt.subplots(3)
 ax[0].plot(mach, Cd_real,'o', label='Cd Real')
 ax[0].plot(mach, Cd_estim, label='Cd Estimado')
 ax[0].legend()
 ax[0].set_xlim([min(mach), max(mach)])
 ax[0].set_title('Cd vs Mach')
 
+# me fijo tamanos
+print("%------------------------------%")
+print("size(t): ", np.size(t))
+print("size(mach): ", np.size(mach))
+print("%------------------------------%")
+
+# queriamos hacer una funcion para el secondary_xaxis
+def cdt(x):
+    return 
+
 ax[1].plot(t, Cd_real,'o', label='Cd Real')
 ax[1].plot(t, Cd_estim, label='Cd Estimado')
 ax[1].legend()
 ax[1].set_xlim([0, max(t)])
 ax[1].set_title('Cd vs tiempo')
+#secax = ax[1].secondary_xaxis('top', mach)
+#secax.set_xlabel('Mach')
+
+
+ax[2].plot(mach, Cd_estim, label='Cd Estim')
+ax[2].plot(mach, Cd0_estim, label='Cd0')
+ax[2].plot(mach, Cd2_estim*delta2, label='Cdd2*delta2')
+ax[2].legend()
+ax[2].set_xlim([min(mach), max(mach)])
+ax[2].set_title('Cd vs Mach')
 
 plt.tight_layout()
 plt.savefig('Figures/CD - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
@@ -296,7 +330,7 @@ ax[1].set_title('Error en Cl vs tiempo')
 plt.tight_layout()
 plt.savefig('Figures/Cl_error - ' + ['Caso 8', 'Caso 10', 'Caso 11'][CASO] + '.png', bbox_inches='tight')
 
-plt.show()
+#plt.show()
 '''
 
 plt.show()
